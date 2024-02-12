@@ -119,6 +119,12 @@ async def wms(request: Request):
 async def put_scribbles(
         scribbles: list[NewScribble | NewLabel | Deletion]
         ) -> list[int | None]:
+    # Check that at least the user is the same
+    for i in range(1, len(scribbles)):
+        if (scribbles[i].user_id != scribbles[0].user_id or
+                scribbles[i].username != scribbles[0].username):
+            raise HTTPException(401, "User should be the same for all elements")
+
     new_ids: list[int | None] = []
     async with get_cursor(True) as cur:
         for s in scribbles:
