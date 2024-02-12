@@ -5,6 +5,7 @@ from .crs import CRS_LIST, BBox
 from .models import Scribble, Label
 from .db import query
 from PIL import Image, ImageDraw
+from typing import Union
 
 
 def get_capabilities(endpoint: str) -> str:
@@ -110,7 +111,7 @@ async def get_map(params: dict[str, str]) -> bytes:
     return content.getvalue()
 
 
-def render_image(image: Image, bbox: BBox, scribbles: list[Scribble | Label]):
+def render_image(image: Image, bbox: BBox, scribbles: list[Union[Scribble, Label]]):
     draw = ImageDraw.Draw(image)
     for s in scribbles:
         if isinstance(s, Scribble):

@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Annotated
+from typing import Annotated, Union, Optional
 from fastapi import FastAPI, Query, HTTPException, Response, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
@@ -45,8 +45,8 @@ async def root():
 @app.get('/scribbles')
 async def scribbles(
         bbox: Annotated[str, Query(pattern=r'^-?\d+(?:\.\d+)?(,-?\d+(?:\.\d+)?){3}$')],
-        username: str | None = None, user_id: int | None = None,
-        maxage: int | None = None) -> list[Scribble | Label]:
+        username: Optional[str] = None, user_id: Optional[int] = None,
+        maxage: Optional[int] = None) -> list[Union[Scribble, Label]]:
     box = [float(part.strip()) for part in bbox.split(',')]
     if (abs(box[2] - box[0]) > config.MAX_COORD_SPAN or
             abs(box[3] - box[1]) > config.MAX_COORD_SPAN):
@@ -57,8 +57,8 @@ async def scribbles(
 @app.get('/geojson')
 async def geojson(
         bbox: Annotated[str, Query(pattern=r'^-?\d+(?:\.\d+)?(,-?\d+(?:\.\d+)?){3}$')],
-        username: str | None = None, user_id: str | None = None,
-        maxage: int | None = None) -> FeatureCollection:
+        username: Optional[str] = None, user_id: Optional[str] = None,
+        maxage: Optional[int] = None) -> FeatureCollection:
     scr = await scribbles(bbox, username, user_id, maxage)
     features = []
     for s in scr:
@@ -117,15 +117,15 @@ async def wms(request: Request):
 
 @app.post('/upload')
 async def put_scribbles(
-        scribbles: list[NewScribble | NewLabel | Deletion]
-        ) -> list[int | None]:
+        scribbles: list[Union[NewScribble, NewLabel, Deletion]]
+        ) -> list[Optional[int]]:
     # Check that at least the user is the same
     for i in range(1, len(scribbles)):
         if (scribbles[i].user_id != scribbles[0].user_id or
                 scribbles[i].username != scribbles[0].username):
             raise HTTPException(401, "User should be the same for all elements")
 
-    new_ids: list[int | None] = []
+    new_ids: list[Optional[int]] = []
     async with get_cursor(True) as cur:
         for s in scribbles:
             if isinstance(s, NewScribble):
@@ -138,7 +138,7 @@ async def put_scribbles(
 
 
 @app.put('/new')
-async def put_one_scribble(scribble: NewScribble | NewLabel) -> int:
+async def put_one_scribble(scribble: Union[NewScribble, NewLabel]) -> int:
     async with get_cursor(True) as cur:
         if isinstance(scribble, NewScribble):
             logging.info(scribble.points)

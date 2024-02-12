@@ -1,5 +1,5 @@
 from math import radians, cos, sqrt
-from typing import Annotated
+from typing import Annotated, Optional
 from annotated_types import Len
 from pydantic import BaseModel, Field, PastDatetime
 from pydantic.functional_validators import AfterValidator
@@ -50,7 +50,7 @@ class NewLabel(Identification):
     location: Annotated[tuple[float, float], Field(examples=[[10.1, 55.2]])]
     text: Annotated[str, Field(
         min_length=1, max_length=40, examples=['fence'])]
-    color: Annotated[str | None, Field(
+    color: Annotated[Optional[str], Field(
         pattern='^[0-9a-fA-F]{6}$', description='Color in hex format RRGGBB')]
 
 

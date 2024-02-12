@@ -5,6 +5,7 @@ from datetime import timedelta
 from contextlib import asynccontextmanager
 from psycopg_pool import AsyncConnectionPool
 from psycopg.rows import dict_row
+from typing import Union, Optional
 from . import config
 from .models import Scribble, Label, NewLabel, NewScribble
 
@@ -57,12 +58,12 @@ async def init_database():
     await create_table()
 
 
-async def query(bbox: list[float], username: str | None = None,
-                user_id: int | None = None, maxage: int | None = None
-                ) -> list[Scribble | Label]:
+async def query(bbox: list[float], username: Optional[str] = None,
+                user_id: Optional[int] = None, maxage: Optional[int] = None
+                ) -> list[Union[Scribble, Label]]:
     age = maxage or config.DEFAULT_AGE
     # TODO: query by username and user_id
-    result: list[Scribble | Label] = []
+    result: list[Union[Scribble, Label]] = []
     async with get_cursor() as cur:
         await cur.execute(
             """select *, ST_AsGeoJSON(geom) json from scribbles
