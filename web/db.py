@@ -102,7 +102,7 @@ async def insert_scribble(cur, s: NewScribble) -> int:
     await cur.execute(
         """insert into scribbles
         (user_id, username, style, color, thin, dashed, geom)
-        values (%s, %s, %s, %s, %s, %s, ST_GeomFromGeoJSON(%s))
+        values (%s, %s, %s, %s, %s, %s, ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
         returning scribble_id""",
         (s.user_id, s.username, s.style, s.color, s.thin, s.dashed,
          json.dumps({'type': 'LineString', 'coordinates': s.points})))
