@@ -11,8 +11,11 @@ create table scribbles (
     thin boolean not null default true,
     dashed boolean not null default false,
     label text,
-    deleted timestamp with time zone
+
+    deleted timestamp with time zone,
+    deleted_by_id integer
 );
 
 create index scribbles_idx_geom on scribbles using gist (geom);
 create index scribbles_idx_created on scribbles (created);
+create index scribbles_idx_user_id on scribbles (user_id);

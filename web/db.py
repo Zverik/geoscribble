@@ -7,7 +7,7 @@ from psycopg_pool import AsyncConnectionPool
 from psycopg.rows import dict_row
 from typing import Union, Optional
 from . import config
-from .models import Scribble, Label, NewLabel, NewScribble
+from .models import Scribble, Label, NewLabel, NewScribble, Deletion
 
 
 pool = AsyncConnectionPool(
@@ -135,7 +135,8 @@ async def insert_label(cur, s: NewLabel) -> int:
     return (await cur.fetchone())['scribble_id']
 
 
-async def delete_scribble(cur, scribble_id: int) -> int:
+async def delete_scribble(cur, s: Deletion) -> int:
     await cur.execute(
-        "update scribbles set deleted = now() where scribble_id = %s", (scribble_id,))
-    return scribble_id
+        "update scribbles set deleted = now(), deleted_by_id = %s where scribble_id = %s",
+        (s.user_id, s.id))
+    return s.id

@@ -51,7 +51,7 @@ async def scribbles(
     if (abs(box[2] - box[0]) > config.MAX_COORD_SPAN or
             abs(box[3] - box[1]) > config.MAX_COORD_SPAN):
         raise HTTPException(422, f"Maximum coordinate span is {config.MAX_COORD_SPAN}")
-    return await query(box, username, user_id, maxage)
+    return await query(box, username, user_id, None, maxage)
 
 
 @app.get('/geojson')
@@ -136,7 +136,7 @@ async def put_scribbles(
             elif isinstance(s, NewLabel):
                 new_ids.append(await insert_label(cur, s))
             elif isinstance(s, Deletion):
-                new_ids.append(await delete_scribble(cur, s.id))
+                new_ids.append(await delete_scribble(cur, s))
     return new_ids
 
 
@@ -149,9 +149,3 @@ async def put_one_scribble(scribble: Union[NewScribble, NewLabel]) -> int:
         elif isinstance(scribble, NewLabel):
             return await insert_label(cur, scribble)
     raise HTTPException(401)  # TODO: proper error
-
-
-@app.delete('/delete/{scribble_id}')
-async def delete_one_scribble(scribble_id: int) -> int:
-    async with get_cursor(True) as cur:
-        return await delete_scribble(cur, scribble_id)
