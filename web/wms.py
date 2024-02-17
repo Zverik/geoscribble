@@ -104,7 +104,7 @@ async def get_map(params: dict[str, str]) -> bytes:
     bbox_obj = BBox(crs, bbox)
     maxage = 30 if 'latest' in params.get('layers', '') else None
     scribbles = await query(bbox_obj.to_4326(), maxage=maxage)
-    out = Image.new('RGBA', width, height)
+    out = Image.new('RGBA', (width, height))
     render_image(out, bbox_obj, scribbles)
     content = BytesIO()
     out.save(content, 'PNG')
