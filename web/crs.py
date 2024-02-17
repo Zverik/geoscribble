@@ -16,6 +16,10 @@ class BaseCRS:
         """Returns either (lon, lat) or (lat, lon) depending on CRS."""
         return x, y
 
+    @property
+    def flip(self):
+        return False
+
 
 class CRS_4326(BaseCRS):
     pass
@@ -37,6 +41,10 @@ class CRS_3857(BaseCRS):
         fx = x / EARTH_RADIUS
         fy = asin(tanh(y / EARTH_RADIUS))
         return degrees(fx), degrees(fy)
+
+    @property
+    def flip(self):
+        return True
 
 
 CRS_LIST: dict[str, BaseCRS] = {
