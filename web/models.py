@@ -10,7 +10,7 @@ class Identification(BaseModel):
     username: Annotated[str, Field(description='OSM user name')]
     user_id: Annotated[int, Field(
         gt=0, description='OSM user id', examples=[1234])]
-    editor: Annotated[Optional[str], Field(
+    editor: Annotated[str, Field(
         description='Editor that uploaded the element', examples=['Every Door'])]
 
 

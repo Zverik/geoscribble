@@ -3,7 +3,7 @@ create table scribbles (
     geom geometry not null,
     username text not null,
     user_id integer not null,
-    editor text,
+    editor text not null,
     created timestamp with time zone not null default now(),
 
     style text,
