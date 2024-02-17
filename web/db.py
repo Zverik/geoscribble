@@ -59,17 +59,31 @@ async def init_database():
 
 
 async def query(bbox: list[float], username: Optional[str] = None,
-                user_id: Optional[int] = None, maxage: Optional[int] = None
+                user_id: Optional[int] = None,
+                editor: Optional[str] = None,
+                maxage: Optional[int] = None
                 ) -> list[Union[Scribble, Label]]:
     age = maxage or config.DEFAULT_AGE
-    # TODO: query by username and user_id
     result: list[Union[Scribble, Label]] = []
     async with get_cursor() as cur:
+        params = [*bbox, timedelta(days=age)]
+        add_queries = []
+        if username:
+            add_queries.append('and username = %s')
+            params.append(username)
+        if user_id:
+            add_queries.append('and user_id = %s')
+            params.append(user_id)
+        if editor:
+            add_queries.append('and editor = %s')
+            params.append(editor)
+
         await cur.execute(
             """select *, ST_AsGeoJSON(geom) json from scribbles
             where ST_Intersects(geom, ST_MakeEnvelope(%s, %s, %s, %s, 4326))
-            and created >= now() - %s and deleted is null""",
-            (*bbox, timedelta(days=age)))
+            and created >= now() - %s and deleted is null
+            {q}""".format(q=' '.join(add_queries)),
+            params)
         async for row in cur:
             geom = json.loads(row['json'])
             if geom['type'] == 'Point':
@@ -78,6 +92,7 @@ async def query(bbox: list[float], username: Optional[str] = None,
                     created=row['created'],
                     username=row['username'],
                     user_id=row['user_id'],
+                    editor=row['editor'],
                     location=(geom['coordinates'][0],
                               geom['coordinates'][1]),
                     color=row['color'],
@@ -89,6 +104,7 @@ async def query(bbox: list[float], username: Optional[str] = None,
                     created=row['created'],
                     username=row['username'],
                     user_id=row['user_id'],
+                    editor=row['editor'],
                     style=row['style'],
                     color=row['color'],
                     dashed=row['dashed'],
@@ -101,10 +117,10 @@ async def query(bbox: list[float], username: Optional[str] = None,
 async def insert_scribble(cur, s: NewScribble) -> int:
     await cur.execute(
         """insert into scribbles
-        (user_id, username, style, color, thin, dashed, geom)
-        values (%s, %s, %s, %s, %s, %s, ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
+        (user_id, username, editor, style, color, thin, dashed, geom)
+        values (%s, %s, %s, %s, %s, %s, %s, ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
         returning scribble_id""",
-        (s.user_id, s.username, s.style, s.color, s.thin, s.dashed,
+        (s.user_id, s.username, s.editor, s.style, s.color, s.thin, s.dashed,
          json.dumps({'type': 'LineString', 'coordinates': s.points})))
     return (await cur.fetchone())['scribble_id']
 
@@ -112,10 +128,10 @@ async def insert_scribble(cur, s: NewScribble) -> int:
 async def insert_label(cur, s: NewLabel) -> int:
     await cur.execute(
         """insert into scribbles
-        (user_id, username, color, label, geom)
-        values (%s, %s, %s, %s, ST_Point(%s, %s, 4326))
+        (user_id, username, editor, color, label, geom)
+        values (%s, %s, %s, %s, %s, ST_Point(%s, %s, 4326))
         returning scribble_id""",
-        (s.user_id, s.username, s.color, s.text, *s.location))
+        (s.user_id, s.username, s.editor, s.color, s.text, *s.location))
     return (await cur.fetchone())['scribble_id']
 
 

@@ -70,11 +70,12 @@ async def geojson(
                     'type': 'scribble',
                     'id': s.id,
                     'style': s.style,
-                    'color': f'#{s.color}',
+                    'color': None if not s.color else f'#{s.color}',
                     'dashed': s.dashed,
                     'thin': s.thin,
                     'username': s.username,
                     'user_id': s.user_id,
+                    'editor': s.editor,
                     'created': s.created,
                 }
             ))
@@ -89,6 +90,7 @@ async def geojson(
                     'text': s.text,
                     'username': s.username,
                     'user_id': s.user_id,
+                    'editor': s.editor,
                     'created': s.created,
                 }
             ))
@@ -122,8 +124,9 @@ async def put_scribbles(
     # Check that at least the user is the same
     for i in range(1, len(scribbles)):
         if (scribbles[i].user_id != scribbles[0].user_id or
-                scribbles[i].username != scribbles[0].username):
-            raise HTTPException(401, "User should be the same for all elements")
+                scribbles[i].username != scribbles[0].username or
+                scribbles[i].editor != scribbles[0].editor):
+            raise HTTPException(401, "User and editor should be the same for all elements")
 
     new_ids: list[Optional[int]] = []
     async with get_cursor(True) as cur:

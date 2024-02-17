@@ -1,5 +1,5 @@
 from math import radians, cos, sqrt
-from typing import Annotated
+from typing import Annotated, Optional
 from annotated_types import Len
 from pydantic import BaseModel, Field, PastDatetime
 from pydantic.functional_validators import AfterValidator
@@ -10,6 +10,8 @@ class Identification(BaseModel):
     username: Annotated[str, Field(description='OSM user name')]
     user_id: Annotated[int, Field(
         gt=0, description='OSM user id', examples=[1234])]
+    editor: Annotated[Optional[str], Field(
+        description='Editor that uploaded the element', examples=['Every Door'])]
 
 
 def distance(p1: tuple[float, float], p2: tuple[float, float]) -> float:
@@ -33,8 +35,8 @@ def validate_length(points: list[tuple[float, float]]):
 
 class NewScribble(Identification):
     style: Annotated[str, Field(examples=['track'])]
-    color: Annotated[str, Field(
-        pattern='^[0-9a-fA-F]{6}$', description='Color in hex format RRGGBB')] = 'FFFFFF'
+    color: Annotated[Optional[str], Field(
+        pattern='^[0-9a-fA-F]{6}$', description='Color in hex format RRGGBB')]
     dashed: bool = False
     thin: bool = True
     points: Annotated[list[tuple[float, float]],
@@ -50,8 +52,8 @@ class NewLabel(Identification):
     location: Annotated[tuple[float, float], Field(examples=[[10.1, 55.2]])]
     text: Annotated[str, Field(
         min_length=1, max_length=40, examples=['fence'])]
-    color: Annotated[str, Field(
-        pattern='^[0-9a-fA-F]{6}$', description='Color in hex format RRGGBB')] = 'FFFFFF'
+    color: Annotated[Optional[str], Field(
+        pattern='^[0-9a-fA-F]{6}$', description='Color in hex format RRGGBB')]
 
 
 class Deletion(Identification):
