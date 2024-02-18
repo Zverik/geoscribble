@@ -1,5 +1,7 @@
 import os
 
+BASE_URL = os.getenv('BASE_URL', '')
+
 # Set to localhost or a socket path.
 PG_HOST = os.getenv('PGHOST', '/var/run/postgresql')
 
