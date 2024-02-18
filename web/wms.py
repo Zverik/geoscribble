@@ -12,14 +12,9 @@ def get_capabilities(endpoint: str) -> str:
     srs = '\n'.join([f'<SRS>{k}</SRS>' for k in CRS_LIST.keys()])
     xml = """
 <?xml version='1.0' encoding="UTF-8" standalone="no" ?>
-<!DOCTYPE WMT_MS_Capabilities SYSTEM "http://schemas.opengis.net/wms/1.1.1/WMS_MS_Capabilities.dtd"
- [
- <!ELEMENT VendorSpecificCapabilities EMPTY>
- ]>  <!-- end of DOCTYPE declaration -->
-
-<WMT_MS_Capabilities version="1.1.1">
+<WMS_Capabilities xmlns="http://www.opengis.net/wms" version="1.1.1">
 <Service>
-  <Name>OGC:WMS</Name>
+  <Name>WMS</Name>
   <Title>GeoScribbles</Title>
   <ContactInformation>
   </ContactInformation>
@@ -71,8 +66,8 @@ def get_capabilities(endpoint: str) -> str:
     </Layer>
   </Layer>
 </Capability>
-</WMT_MS_Capabilities>
-    """.format(url=endpoint, srs=srs)
+</WMS_Capabilities>
+    """.format(url=endpoint.rstrip('/'), srs=srs)
     return xml
 
 
