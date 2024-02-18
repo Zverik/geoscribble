@@ -103,7 +103,7 @@ async def wms(request: Request):
     if params.get('request') == 'GetCapabilities':
         if params.get('service', 'WMS') != 'WMS':
             raise HTTPException(422, "Please use WMS for service")
-        xml = get_capabilities(str(request.url.replace(query='', path='')))  # TODO: url
+        xml = get_capabilities(request.scope.get('root_path') or request.base_url)  # TODO: url
         return Response(content=xml, media_type='application/xml')
     elif params.get('request') == 'GetMap':
         if any([k not in params for k in ('format', 'bbox', 'crs', 'width', 'height', 'layers')]):

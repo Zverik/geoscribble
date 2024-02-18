@@ -10,8 +10,7 @@ from typing import Union
 
 def get_capabilities(endpoint: str) -> str:
     srs = '\n'.join([f'<SRS>{k}</SRS>' for k in CRS_LIST.keys()])
-    xml = """
-<?xml version='1.0' encoding="UTF-8" standalone="no" ?>
+    xml = """<?xml version='1.0' encoding="UTF-8" standalone="no" ?>
 <WMS_Capabilities xmlns="http://www.opengis.net/wms" version="1.1.1">
 <Service>
   <Name>WMS</Name>
@@ -67,7 +66,7 @@ def get_capabilities(endpoint: str) -> str:
   </Layer>
 </Capability>
 </WMS_Capabilities>
-    """.format(url=endpoint.rstrip('/'), srs=srs)
+    """.format(url=str(endpoint).rstrip('/'), srs=srs)
     return xml
 
 
