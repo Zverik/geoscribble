@@ -107,7 +107,7 @@ async def wms(request: Request):
         xml = get_capabilities(base_url)  # TODO: url behind proxy
         return Response(content=xml, media_type='application/xml')
     elif params.get('request') == 'GetMap':
-        if any([k not in params for k in ('format', 'bbox', 'crs', 'width', 'height', 'layers')]):
+        if any([k not in params for k in ('format', 'bbox', 'width', 'height', 'layers')]):
             raise HTTPException(422, "Missing parameter for GetMap")
         if params.get('format') != 'image/png':
             raise HTTPException(422, "GetMap supports only PNG images")

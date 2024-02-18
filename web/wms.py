@@ -72,7 +72,7 @@ def get_capabilities(endpoint: str) -> str:
 
 async def get_map(params: dict[str, str]) -> bytes:
     # Fist get CRS because everything depends on it.
-    crs = CRS_LIST.get(params['crs'].upper())
+    crs = CRS_LIST.get(params.get('crs', params.get('srs', '')).upper())
     if not crs:
         raise HTTPException(422, 'Unsupported CRS')
 
