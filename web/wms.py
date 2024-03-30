@@ -116,7 +116,7 @@ def render_image(image: Image, bbox: BBox, scribbles: list[Union[Scribble, Label
             coords = [(round(c[0] * image.width), round(c[1] * image.height)) for c in coords]
             width = 3 if s.thin else 5
             if s.dashed:
-                draw.dashed_line(coords, (30, 20), fill=f'#{s.color}', width=width)
+                draw.dashed_line(coords, (10, 10), fill=f'#{s.color}', width=width)
             else:
                 draw.line(coords, fill=f'#{s.color}', width=width)
         elif isinstance(s, Label):
