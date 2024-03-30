@@ -4,6 +4,7 @@ from . import config
 from .crs import CRS_LIST, BBox
 from .models import Scribble, Label
 from .db import query
+from .dashed_draw import DashedImageDraw
 from PIL import Image, ImageDraw, ImageOps
 from typing import Union
 
@@ -108,14 +109,23 @@ async def get_map(params: dict[str, str]) -> bytes:
 
 
 def render_image(image: Image, bbox: BBox, scribbles: list[Union[Scribble, Label]]):
-    draw = ImageDraw.Draw(image)
+    draw = DashedImageDraw(image)
     for s in scribbles:
         if isinstance(s, Scribble):
             coords = [bbox.to_pixel(c) for c in s.points]
             coords = [(round(c[0] * image.width), round(c[1] * image.height)) for c in coords]
-            width = 3 if s.thin else 7
-            draw.line(coords, fill=f'#{s.color}', width=width)
+            width = 3 if s.thin else 5
+            if s.dashed:
+                draw.dashed_line(coords, (5, 5), fill=f'#{s.color}', width=width)
+            else:
+                draw.line(coords, fill=f'#{s.color}', width=width)
         elif isinstance(s, Label):
             coord = bbox.to_pixel(s.location)
             coord = (round(coord[0] * image.width), round(coord[1] * image.height))
+            r = 2
+            elcoord = [
+                (coord[0] - r, coord[1] - r),
+                (coord[0] + r, coord[1] + r),
+            ]
+            draw.ellipse(elcoord, outline='#000000', fill='#e0ffe0', width=1)
             # TODO: draw.text
