@@ -36,7 +36,7 @@ def validate_length(points: list[tuple[float, float]]):
 class NewScribble(Identification):
     style: Annotated[str, Field(examples=['track'])]
     color: Annotated[Optional[str], Field(
-        pattern='^[0-9a-fA-F]{6}$', description='Color in hex format RRGGBB')]
+        pattern='^[0-9a-fA-F]{6}$', description='Color in hex format RRGGBB')] = None
     dashed: bool = False
     thin: bool = True
     points: Annotated[list[tuple[float, float]],
@@ -53,7 +53,7 @@ class NewLabel(Identification):
     text: Annotated[str, Field(
         min_length=1, max_length=40, examples=['fence'])]
     color: Annotated[Optional[str], Field(
-        pattern='^[0-9a-fA-F]{6}$', description='Color in hex format RRGGBB')]
+        pattern='^[0-9a-fA-F]{6}$', description='Color in hex format RRGGBB')] = None
 
 
 class Deletion(Identification):
