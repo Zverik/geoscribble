@@ -146,4 +146,5 @@ def render_image(image: Image, bbox: BBox, scribbles: list[Union[Scribble, Label
             for k in sorted(age_colors.keys()):
                 if s.minage <= k or k == 1000:
                     color = age_colors[k]
+                    break
             draw.rectangle(xy, fill=color, width=0)

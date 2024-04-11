@@ -98,7 +98,8 @@ async def query(bbox: list[float], username: Optional[str] = None,
             add_queries.append('and editor = %s')
             params.append(editor)
 
-        if not bbox_too_big(bbox):
+        overview = bbox_too_big(bbox)
+        if not overview:
             sql = """select *, ST_AsGeoJSON(geom) json from scribbles
             where ST_Intersects(geom, ST_MakeEnvelope(%s, %s, %s, %s, 4326))
             and created >= now() - %s and deleted is null
@@ -119,7 +120,7 @@ async def query(bbox: list[float], username: Optional[str] = None,
 
         async for row in cur:
             geom = json.loads(row['json'])
-            if 'age' in row:
+            if overview:
                 c = geom['coordinates'][0]
                 result.append(Box(
                     minage=row['age'],
