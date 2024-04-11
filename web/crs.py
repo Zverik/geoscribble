@@ -67,6 +67,6 @@ class BBox:
 
     def to_4326(self) -> list[float]:
         return [
-            *self.crs.pixel_to_coords(self.x, self.x + self.w),
-            *self.crs.pixel_to_coords(self.y, self.y + self.h),
+            *self.crs.pixel_to_coords(self.x, self.y),
+            *self.crs.pixel_to_coords(self.x + self.w, self.y + self.h),
         ]
