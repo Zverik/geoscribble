@@ -48,7 +48,7 @@ class DashedImageDraw(ImageDraw.ImageDraw):
             length = math.sqrt(x_length**2 + y_length**2)
             dash_enabled = True
             postion = 0
-            while postion <= length:
+            while length > 0 and postion <= length:
                 for dash_step in dash:
                     if postion > length:
                         break

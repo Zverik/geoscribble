@@ -2,7 +2,7 @@ from fastapi import HTTPException
 from io import BytesIO
 from . import config
 from .crs import CRS_LIST, BBox
-from .models import Scribble, Label
+from .models import Scribble, Label, Box
 from .db import query
 from .dashed_draw import DashedImageDraw
 from PIL import Image, ImageDraw, ImageOps
@@ -109,6 +109,14 @@ async def get_map(params: dict[str, str]) -> bytes:
 
 
 def render_image(image: Image, bbox: BBox, scribbles: list[Union[Scribble, Label]]):
+    age_colors = {
+        3: '#ffffb2',
+        7: '#fed976',
+        14: '#feb24c',
+        30: '#fd8d3c',
+        61: '#f03b20',
+        1000: '#bd0026',
+    }
     draw = DashedImageDraw(image)
     for s in scribbles:
         if isinstance(s, Scribble):
@@ -122,10 +130,20 @@ def render_image(image: Image, bbox: BBox, scribbles: list[Union[Scribble, Label
         elif isinstance(s, Label):
             coord = bbox.to_pixel(s.location)
             coord = (round(coord[0] * image.width), round(coord[1] * image.height))
-            r = 2
+            r = 3
             elcoord = [
                 (coord[0] - r, coord[1] - r),
                 (coord[0] + r, coord[1] + r),
             ]
             draw.ellipse(elcoord, outline='#000000', fill='#e0ffe0', width=1)
             # TODO: draw.text
+            draw.text([elcoord[1][0], elcoord[0][1]], s.text, fill='#ffffff')
+        elif isinstance(s, Box):
+            x1, y1 = bbox.to_pixel((s.box[0], s.box[1]))
+            x2, y2 = bbox.to_pixel((s.box[2], s.box[3]))
+            xy = [min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2)]
+            color = '#ffffff'  # not used
+            for k in sorted(age_colors.keys()):
+                if s.minage <= k or k == 1000:
+                    color = age_colors[k]
+            draw.rectangle(xy, fill=color, width=0)

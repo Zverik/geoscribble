@@ -75,6 +75,11 @@ class Label(NewLabel):
     created: PastDatetime
 
 
+class Box(BaseModel):
+    box: Annotated[list[float], Field(description='Bounding box')]
+    minage: int
+
+
 class Feature(BaseModel):
     f_type: Annotated[str, Field("Feature", serialization_alias='type')]
     geometry: dict

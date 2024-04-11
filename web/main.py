@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse
 from . import config
 from .models import (
     NewScribble, NewLabel, Deletion, Scribble, Label,
-    FeatureCollection, Feature,
+    FeatureCollection, Feature, Box,
 )
 from .db import (
     init_database, query, get_cursor,
@@ -46,11 +46,8 @@ async def root():
 async def scribbles(
         bbox: Annotated[str, Query(pattern=r'^-?\d+(?:\.\d+)?(,-?\d+(?:\.\d+)?){3}$')],
         username: Optional[str] = None, user_id: Optional[int] = None,
-        maxage: Optional[int] = None) -> list[Union[Scribble, Label]]:
+        maxage: Optional[int] = None) -> list[Union[Scribble, Label, Box]]:
     box = [float(part.strip()) for part in bbox.split(',')]
-    if (abs(box[2] - box[0]) > config.MAX_COORD_SPAN or
-            abs(box[3] - box[1]) > config.MAX_COORD_SPAN):
-        raise HTTPException(422, f"Maximum coordinate span is {config.MAX_COORD_SPAN}")
     return await query(box, username, user_id, None, maxage)
 
 
@@ -73,8 +70,8 @@ async def geojson(
                     'color': None if not s.color else f'#{s.color}',
                     'dashed': s.dashed,
                     'thin': s.thin,
-                    'username': s.username,
-                    'user_id': s.user_id,
+                    'userName': s.username,
+                    'userId': s.user_id,
                     'editor': s.editor,
                     'created': s.created,
                 }
@@ -89,10 +86,28 @@ async def geojson(
                     'color': None if not s.color else f'#{s.color}',
                     'text': s.text,
                     'username': s.username,
-                    'user_id': s.user_id,
+                    'userId': s.user_id,
                     'editor': s.editor,
                     'created': s.created,
                 }
+            ))
+        elif isinstance(s, Box):
+            features.append(Feature(
+                f_type='Feature',
+                geometry={
+                    'type': 'Polygon',
+                    'coordinates': [[
+                        [s.box[0], s.box[1]],
+                        [s.box[2], s.box[1]],
+                        [s.box[2], s.box[3]],
+                        [s.box[0], s.box[3]],
+                        [s.box[0], s.box[1]],
+                    ]],
+                },
+                properties={
+                    'type': 'box',
+                    'minAge': s.minage,
+                },
             ))
     return FeatureCollection(features=features)
 
