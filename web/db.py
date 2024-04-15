@@ -69,12 +69,10 @@ def geohash_digits(box: list[float]) -> int:
     # area in square degrees.
     area = abs(box[2] - box[0]) * abs(box[3] - box[1])
     if area > 1000:
-        return 2
-    if area > 100:
+        return 3
+    if area > 40:
         return 4
-    if area > 10:
-        return 5
-    return 6
+    return 5
 
 
 async def query(bbox: list[float], username: Optional[str] = None,

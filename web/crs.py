@@ -63,7 +63,10 @@ class BBox:
 
     def to_pixel(self, lonlat: tuple[float, float]) -> tuple[float, float]:
         proj = self.crs.coords_to_pixel(lonlat[0], lonlat[1])
-        return (proj[0] - self.x) / self.w, (proj[1] - self.y) / self.h
+        x, y = (proj[0] - self.x) / self.w, (proj[1] - self.y) / self.h
+        if self.crs.flip:
+            y = self.h - y
+        return x, y
 
     def to_4326(self) -> list[float]:
         return [

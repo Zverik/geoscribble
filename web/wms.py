@@ -101,8 +101,6 @@ async def get_map(params: dict[str, str]) -> bytes:
     scribbles = await query(bbox_obj.to_4326(), maxage=maxage)
     out = Image.new('RGBA', (width, height))
     render_image(out, bbox_obj, scribbles)
-    if crs.flip:
-        out = ImageOps.flip(out)
     content = BytesIO()
     out.save(content, 'PNG')
     return content.getvalue()
