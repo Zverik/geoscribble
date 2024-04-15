@@ -125,7 +125,19 @@ def render_image(image: Image, bbox: BBox, scribbles: list[Union[Scribble, Label
                 draw.dashed_line(coords, (10, 10), fill=f'#{s.color}', width=width)
             else:
                 draw.line(coords, fill=f'#{s.color}', width=width)
-        elif isinstance(s, Label):
+        elif isinstance(s, Box):
+            x1, y1 = bbox.to_pixel((s.box[0], s.box[1]))
+            x2, y2 = bbox.to_pixel((s.box[2], s.box[3]))
+            xy = [min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2)]
+            color = '#ffffff'  # not used
+            for k in sorted(age_colors.keys()):
+                if s.minage <= k or k == 1000:
+                    color = age_colors[k]
+                    break
+            draw.rectangle(xy, fill=color, width=0)
+    for s in scribbles:
+        # Drawing labels always after geometries
+        if isinstance(s, Label):
             coord = bbox.to_pixel(s.location)
             coord = (round(coord[0] * image.width), round(coord[1] * image.height))
             r = 3
@@ -144,17 +156,7 @@ def render_image(image: Image, bbox: BBox, scribbles: list[Union[Scribble, Label
             tbox = font.getbbox(s.text)
             tbounds = [
                 tbox[0] + torig[0] - expand, tbox[1] + torig[1] - expand,
-                tbox[2] + torig[0] + expand, tbox[3] + torig[1] + expand,
+                tbox[2] + torig[0] + expand, -tbox[3] + torig[1] + expand,
             ]
             draw.rounded_rectangle(tbounds, 5, fill='#00000050')
             draw.text(torig, s.text, fill='#ffffff', font=font, anchor='lb')
-        elif isinstance(s, Box):
-            x1, y1 = bbox.to_pixel((s.box[0], s.box[1]))
-            x2, y2 = bbox.to_pixel((s.box[2], s.box[3]))
-            xy = [min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2)]
-            color = '#ffffff'  # not used
-            for k in sorted(age_colors.keys()):
-                if s.minage <= k or k == 1000:
-                    color = age_colors[k]
-                    break
-            draw.rectangle(xy, fill=color, width=0)
