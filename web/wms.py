@@ -134,8 +134,18 @@ def render_image(image: Image, bbox: BBox, scribbles: list[Union[Scribble, Label
                 (coord[0] + r, coord[1] + r),
             ]
             draw.ellipse(elcoord, outline='#000000', fill='#e0ffe0', width=1)
-            # TODO: draw.text
-            font = ImageFont.load_default()
+            try:
+                font = ImageFont.truetype(config.FONT, size=14)
+            except OSError:
+                font = ImageFont.load_default()
+            # Draw semi-transparent background
+            tbox = font.getbbox(s.text)
+            expand = 3
+            tbounds = [
+                tbox[0] - expand, tbox[1] - expand,
+                tbox[2] + expand, tbox[3] + expand,
+            ]
+            draw.rounded_rectangle(tbounds, 5, fill='#00000050')
             draw.text([elcoord[1][0], elcoord[0][1]], s.text, fill='#ffffff', font=font)
         elif isinstance(s, Box):
             x1, y1 = bbox.to_pixel((s.box[0], s.box[1]))

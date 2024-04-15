@@ -21,3 +21,6 @@ DEFAULT_AGE = int(os.getenv('DEFAULT_AGE', '182'))  # half a year
 MAX_COORD_SPAN = float(os.getenv('MAX_COORD_SPAN', '0.3'))
 MAX_IMAGE_WIDTH = int(os.getenv('MAX_IMAGE_WIDTH', '3000'))
 MAX_IMAGE_HEIGHT = int(os.getenv('MAX_IMAGE_HEIGHT', '2000'))
+
+# Fonts for labels
+FONT = os.getenv('FONT', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf')
