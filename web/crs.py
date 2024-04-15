@@ -65,7 +65,7 @@ class BBox:
         proj = self.crs.coords_to_pixel(lonlat[0], lonlat[1])
         x, y = (proj[0] - self.x) / self.w, (proj[1] - self.y) / self.h
         if self.crs.flip:
-            y = self.h - y
+            y = 1 - y
         return x, y
 
     def to_4326(self) -> list[float]:

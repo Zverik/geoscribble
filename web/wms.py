@@ -5,7 +5,7 @@ from .crs import CRS_LIST, BBox
 from .models import Scribble, Label, Box
 from .db import query
 from .dashed_draw import DashedImageDraw
-from PIL import Image, ImageDraw, ImageOps
+from PIL import Image, ImageDraw, ImageFont
 from typing import Union
 
 
@@ -135,7 +135,8 @@ def render_image(image: Image, bbox: BBox, scribbles: list[Union[Scribble, Label
             ]
             draw.ellipse(elcoord, outline='#000000', fill='#e0ffe0', width=1)
             # TODO: draw.text
-            draw.text([elcoord[1][0], elcoord[0][1]], s.text, fill='#ffffff')
+            font = ImageFont.load_default()
+            draw.text([elcoord[1][0], elcoord[0][1]], s.text, fill='#ffffff', font=font)
         elif isinstance(s, Box):
             x1, y1 = bbox.to_pixel((s.box[0], s.box[1]))
             x2, y2 = bbox.to_pixel((s.box[2], s.box[3]))
