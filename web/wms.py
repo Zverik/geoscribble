@@ -155,8 +155,8 @@ def render_image(image: Image, bbox: BBox, scribbles: list[Union[Scribble, Label
             torig = [coord[0] + expand, coord[1] - expand]
             tbox = font.getbbox(s.text)
             tbounds = [
-                tbox[0] + torig[0] - expand, tbox[1] + torig[1] - expand,
-                tbox[2] + torig[0] + expand, -tbox[3] + torig[1] + expand,
+                tbox[0] + torig[0] - expand, -tbox[3] + torig[1] - expand,
+                tbox[2] + torig[0] + expand, tbox[1] + torig[1] + expand,
             ]
             draw.rounded_rectangle(tbounds, 5, fill='#00000050')
             draw.text(torig, s.text, fill='#ffffff', font=font, anchor='lb')
