@@ -139,14 +139,15 @@ def render_image(image: Image, bbox: BBox, scribbles: list[Union[Scribble, Label
             except OSError:
                 font = ImageFont.load_default()
             # Draw semi-transparent background
-            tbox = font.getbbox(s.text)
             expand = 3
+            torig = [coord[0] + expand, coord[1] - expand]
+            tbox = font.getbbox(s.text)
             tbounds = [
-                tbox[0] - expand, tbox[1] - expand,
-                tbox[2] + expand, tbox[3] + expand,
+                tbox[0] + torig[0] - expand, tbox[1] + torig[1] - expand,
+                tbox[2] + torig[0] + expand, tbox[3] + torig[1] + expand,
             ]
             draw.rounded_rectangle(tbounds, 5, fill='#00000050')
-            draw.text([elcoord[1][0], elcoord[0][1]], s.text, fill='#ffffff', font=font)
+            draw.text(torig, s.text, fill='#ffffff', font=font, anchor='lb')
         elif isinstance(s, Box):
             x1, y1 = bbox.to_pixel((s.box[0], s.box[1]))
             x2, y2 = bbox.to_pixel((s.box[2], s.box[3]))
