@@ -97,8 +97,17 @@ async def get_map(params: dict[str, str]) -> bytes:
         raise HTTPException(422, 'Expecting 4 numbers for bbox')
 
     bbox_obj = BBox(crs, bbox)
-    maxage = 30 if 'latest' in params.get('layers', '') else None
-    scribbles = await query(bbox_obj.to_4326(), maxage=maxage)
+    maxage = 21 if 'latest' in params.get('layers', '') else None
+
+    try:
+        user_id: int | None = int(params.get('user_id', ''))
+    except ValueError:
+        user_id = None
+
+    scribbles = await query(
+        bbox_obj.to_4326(), maxage=maxage,
+        user_id=user_id, username=params.get('username'),
+    )
     out = Image.new('RGBA', (width, height))
     render_image(out, bbox_obj, scribbles)
     content = BytesIO()

@@ -15,7 +15,7 @@ PG_DATABASE = os.getenv('PGDATABASE', 'postgres')
 # Geoscribble-specific numbers
 MAX_POINTS = int(os.getenv('MAX_POINTS', '100'))
 MAX_LENGTH = int(os.getenv('MAX_LENGTH', '5000'))  # in meters
-DEFAULT_AGE = int(os.getenv('DEFAULT_AGE', '182'))  # half a year
+DEFAULT_AGE = int(os.getenv('DEFAULT_AGE', '91'))  # three months
 
 # For bbox requests
 MAX_COORD_SPAN = float(os.getenv('MAX_COORD_SPAN', '0.3'))
