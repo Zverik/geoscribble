@@ -80,6 +80,23 @@ class Box(BaseModel):
     minage: int
 
 
+class Task(BaseModel):
+    id: Annotated[int, Field(
+        description='Unique id of the task', examples=[21])]
+    location: Annotated[tuple[float, float], Field(examples=[[10.1, 55.2]])]
+    location_str: Annotated[Optional[str], Field(
+        description='Country and city of the task')]
+    scribbles: Annotated[int, Field(
+        description='Count of scribbles in this task', examples=[1])]
+    username: Annotated[str, Field(description='OSM user name')]
+    user_id: Annotated[int, Field(
+        gt=0, description='OSM user id', examples=[1234])]
+    created: PastDatetime
+    processed: Optional[PastDatetime]
+    processed_by_id: Annotated[Optional[int], Field(
+        gt=0, description='OSM user who closed the task', examples=[1234])]
+
+
 class Feature(BaseModel):
     f_type: Annotated[str, Field("Feature", serialization_alias='type')]
     geometry: dict

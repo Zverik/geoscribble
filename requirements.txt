@@ -2,3 +2,5 @@ fastapi
 uvicorn[standard]
 psycopg[binary,pool]
 Pillow
+jinja2
+aiohttp

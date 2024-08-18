@@ -10,7 +10,7 @@ PG_USER = os.getenv('PGUSER', 'postgres')
 
 # These are pretty much standard.
 PG_PORT = os.getenv('PGPORT', '5432')
-PG_DATABASE = os.getenv('PGDATABASE', 'postgres')
+PG_DATABASE = os.getenv('PGDATABASE', '')
 
 # Geoscribble-specific numbers
 MAX_POINTS = int(os.getenv('MAX_POINTS', '100'))
@@ -24,3 +24,7 @@ MAX_IMAGE_HEIGHT = int(os.getenv('MAX_IMAGE_HEIGHT', '2000'))
 
 # Fonts for labels
 FONT = os.getenv('FONT', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf')
+
+# Email for geocoder
+EMAIL = os.getenv('EMAIL', 'geoscribble@example.com')
+MAX_GEOCODE = int(os.getenv('MAX_GEOCODE', '20'))

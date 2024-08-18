@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>GeoScribble edits</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body>
+    <h1>GeoScribble edits</h1>
+    <table>
+      {% for edit in edits %}
+      <tr>
+        <td>{{ '+' if edit.processed else '?' }}</td>
+        <td>{{ edit.username }}</td>
+        <td>{{ edit.created | format_date }}</td>
+        <td>({{ edit.scribbles }})</td>
+        <td>
+          <a href="/map#17/{{ edit.location[1] }}/{{ edit.location[0] }}">map</a>
+          <a href="http://127.0.0.1:8111/load_and_zoom?left={{ edit.location[0] - 0.01 }}&right={{ edit.location[0] + 0.01 }}&bottom={{ edit.location[1] - 0.01 }}&top={{ edit.location[1] + 0.01 }}">josm</a>
+          <a href="https://rapideditor.org/edit#map=18/{{ edit.location[1] }}/{{ edit.location[0] }}">rapid</a>
+        </td>
+        <td>{{ edit.location_str or '' }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </body>
+</html>

@@ -1,13 +1,15 @@
 import asyncio
+import aiohttp
 import os
 import json
-from datetime import timedelta
+import logging
+from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
 from psycopg_pool import AsyncConnectionPool
 from psycopg.rows import dict_row
 from typing import Union, Optional
 from . import config
-from .models import Scribble, Label, NewLabel, NewScribble, Deletion, Box
+from .models import Scribble, Label, NewLabel, NewScribble, Deletion, Box, Task
 
 
 pool = AsyncConnectionPool(
@@ -43,7 +45,7 @@ async def get_cursor(commit: bool = False):
 async def create_table():
     async with get_cursor(True) as cur:
         await cur.execute(
-            "select 1 from pg_tables where schemaname='public' and tablename='scribbles'")
+            "select 1 from pg_tables where schemaname='public' and tablename='tasks'")
         if not await cur.fetchone():
             # Table is missing, run the script
             filename = os.path.join(os.path.dirname(__file__), 'v1_init_tables.sql')
@@ -178,3 +180,97 @@ async def delete_scribble(cur, s: Deletion) -> int:
         "update scribbles set deleted = now(), deleted_by_id = %s where scribble_id = %s",
         (s.user_id, s.id))
     return s.id
+
+
+async def reverse_geocode(lon: float, lat: float) -> Optional[str]:
+    async with aiohttp.ClientSession() as session:
+        endpoint = 'https://nominatim.openstreetmap.org/reverse'
+        params = {
+            'format': 'jsonv2',
+            'lat': lat,
+            'lon': lon,
+            'accept-language': 'en',
+            'zoom': '12',
+            'layer': 'address',
+            'email': config.EMAIL,
+        }
+        async with session.get(endpoint, params=params) as response:
+            if response.status == 200:
+                data = await response.json()
+                return data.get('display_name')
+            else:
+                logging.warn('Could not geocode %s: %s',
+                             response.url, await response.text())
+    return None
+
+
+async def update_tasks() -> None:
+    async with get_cursor(True) as cur:
+        # Run the script from the file.
+        filename = os.path.join(os.path.dirname(__file__), 'update_tasks.sql')
+        with open(filename, 'r') as f:
+            sql = f.read()
+        await cur.execute(sql)
+
+        # Get max task_id for reverse geocoding.
+        await cur.execute("select max(task_id) t from tasks where location_str is not null")
+        last_geocoded = (await cur.fetchone())['t'] or 0
+
+        # Reverse geocode the new tasks.
+        await cur.execute(
+            "select task_id, ST_X(location) lon, ST_Y(location) lat "
+            "from tasks where task_id > %s and task_id <= %s",
+            (last_geocoded, last_geocoded + config.MAX_GEOCODE))
+        locs: list[tuple[str, int]] = []
+        async for row in cur:
+            loc = await reverse_geocode(row['lon'], row['lat'])
+            if loc:
+                locs.append((loc, row['task_id']))
+            await asyncio.sleep(1.2)
+        await cur.executemany("update tasks set location_str = %s where task_id = %s", locs)
+
+
+async def list_tasks(bbox: Optional[list[float]] = None,
+                     username: Optional[str] = None, user_id: Optional[int] = None,
+                     maxage: Optional[int] = None,
+                     since: Optional[datetime] = None, limit: int = 100) -> list[Task]:
+    age = maxage or config.DEFAULT_AGE
+    if not since:
+        since = datetime.now() - timedelta(days=age)
+
+    params: list = [since]
+    add_queries: list[str] = []
+
+    if bbox:
+        add_queries.append('and ST_Intersects(location, ST_MakeEnvelope(%s, %s, %s, %s, 4326))')
+        params.extend(bbox)
+    if username:
+        add_queries.append('and username = %s')
+        params.append(username)
+    if user_id:
+        add_queries.append('and user_id = %s')
+        params.append(user_id)
+
+    sql = """select *, ST_AsGeoJSON(location) json from tasks
+    where created >= %s {q} order by created desc limit {limit}""".format(
+        q=' '.join(add_queries), limit=limit)
+
+    result: list[Task] = []
+    async with get_cursor() as cur:
+        await cur.execute(sql, params)
+        async for row in cur:
+            geom = json.loads(row['json'])
+            result.append(Task(
+                id=row['task_id'],
+                location=(geom['coordinates'][0],
+                          geom['coordinates'][1]),
+                location_str=row['location_str'],
+                scribbles=row['scribbles'],
+                username=row['username'],
+                user_id=row['user_id'],
+                created=row['created'],
+                processed=row['processed'],
+                processed_by_id=row['processed_by_id'],
+            ))
+
+    return result
