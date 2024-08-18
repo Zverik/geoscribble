@@ -10,7 +10,7 @@
     <table>
       {% for edit in edits %}
       <tr>
-        <td>{{ '+' if edit.processed else '?' }}</td>
+        <td>{{ '+' if edit.processed else '' }}</td>
         <td>{{ edit.username }}</td>
         <td>{{ edit.created | format_date }}</td>
         <td>({{ edit.scribbles }})</td>
