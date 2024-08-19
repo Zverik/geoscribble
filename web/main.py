@@ -60,6 +60,7 @@ templates.env.filters['format_date'] = format_date
 
 @app.get('/', response_class=HTMLResponse)
 async def list_edits(request: Request):
+    logging.warn('Headers: %s', request.headers)
     user_id = request.session.get('user_id')
     nofilter = bool(request.session.get('nofilter'))
     edits = await list_tasks(user_id=None if nofilter else user_id)
