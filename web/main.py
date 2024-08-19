@@ -22,11 +22,10 @@ from .db import (
 from .wms import get_map, get_capabilities
 
 
-logging.basicConfig(
-    level=logging.INFO, format='[%(levelname)s] %(message)s')
+logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=['*'])
-app.add_middleware(SessionMiddleware, secret_key=config.SECRET_KEY)
+app.add_middleware(SessionMiddleware, secret_key=config.SECRET_KEY, max_age=3600*24*365)
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), 'templates'))
 
 oauth = OAuth()
@@ -46,7 +45,7 @@ async def startup():
     await init_database()
 
 
-@app.get('/map', response_class=HTMLResponse)
+@app.get('/map', response_class=HTMLResponse, include_in_schema=False)
 async def root(request: Request):
     return templates.TemplateResponse(request=request, name='browse.html')
 
@@ -58,7 +57,7 @@ def format_date(d) -> str:
 templates.env.filters['format_date'] = format_date
 
 
-@app.get('/', response_class=HTMLResponse)
+@app.get('/', response_class=HTMLResponse, include_in_schema=False)
 async def list_edits(request: Request):
     logging.warn('Headers: %s', request.headers)
     user_id = request.session.get('user_id')
@@ -74,7 +73,7 @@ async def list_edits(request: Request):
         request=request, name='list.html', context=context)
 
 
-@app.get('/task_process')
+@app.get('/task_process', include_in_schema=False)
 async def process_task(task_id: int, request: Request):
     user_id = request.session.get('user_id')
     if user_id:
@@ -82,7 +81,7 @@ async def process_task(task_id: int, request: Request):
     return RedirectResponse(request.url_for('list_edits'))
 
 
-@app.get('/task_unprocess')
+@app.get('/task_unprocess', include_in_schema=False)
 async def unprocess_task(task_id: int, request: Request):
     user_id = request.session.get('user_id')
     if user_id:
@@ -90,13 +89,13 @@ async def unprocess_task(task_id: int, request: Request):
     return RedirectResponse(request.url_for('list_edits'))
 
 
-@app.get('/toggle_filter')
+@app.get('/toggle_filter', include_in_schema=False)
 async def toggle_filter(request: Request):
     request.session['nofilter'] = not request.session.get('nofilter')
     return RedirectResponse(request.url_for('list_edits'))
 
 
-@app.get("/login")
+@app.get("/login", include_in_schema=False)
 async def login_via_osm(request: Request):
     base_url = config.BASE_URL or request.scope.get('root_path') or request.base_url
     logging.info('Base URL: %s, Redirect: %s', base_url, request.url_for('auth_via_osm'))
@@ -104,7 +103,7 @@ async def login_via_osm(request: Request):
     return await oauth.openstreetmap.authorize_redirect(request, redirect_uri)
 
 
-@app.get("/auth")
+@app.get("/auth", include_in_schema=False)
 async def auth_via_osm(request: Request):
     try:
         token = await oauth.openstreetmap.authorize_access_token(request)
@@ -119,7 +118,7 @@ async def auth_via_osm(request: Request):
     return RedirectResponse(request.url_for('list_edits'))
 
 
-@app.get('/logout')
+@app.get('/logout', include_in_schema=False)
 async def logout(request: Request):
     request.session.pop('username')
     request.session.pop('user_id')
@@ -131,6 +130,7 @@ async def tasks(
         bbox: Annotated[Optional[str], Query(pattern=r'^-?\d+(?:\.\d+)?(,-?\d+(?:\.\d+)?){3}$')],
         username: Optional[str] = None, user_id: Optional[int] = None,
         maxage: Optional[int] = None) -> list[Task]:
+    """List tasks (grouped scribbles) by user and date."""
     box = None if not bbox else [float(part.strip()) for part in bbox.split(',')]
     return await list_tasks(box, username, user_id, maxage)
 
@@ -140,6 +140,7 @@ async def scribbles(
         bbox: Annotated[str, Query(pattern=r'^-?\d+(?:\.\d+)?(,-?\d+(?:\.\d+)?){3}$')],
         username: Optional[str] = None, user_id: Optional[int] = None,
         maxage: Optional[int] = None) -> list[Union[Scribble, Label, Box]]:
+    """Return scribbles for a given area, in a raw json format."""
     box = [float(part.strip()) for part in bbox.split(',')]
     return await query(box, username, user_id, None, maxage)
 
@@ -149,6 +150,7 @@ async def geojson(
         bbox: Annotated[str, Query(pattern=r'^-?\d+(?:\.\d+)?(,-?\d+(?:\.\d+)?){3}$')],
         username: Optional[str] = None, user_id: Optional[str] = None,
         maxage: Optional[int] = None) -> FeatureCollection:
+    """Return scribbles for a given area as GeoJSON."""
     scr = await scribbles(bbox, username, user_id, maxage)
     features = []
     for s in scr:
@@ -207,6 +209,7 @@ async def geojson(
 
 @app.get('/wms')
 async def wms(request: Request):
+    """WMS endpoint for editors."""
     params = {k.lower(): v for k, v in request.query_params.items()}
     if params.get('request') == 'GetCapabilities':
         if params.get('service', 'WMS') != 'WMS':
@@ -229,6 +232,7 @@ async def wms(request: Request):
 async def put_scribbles(
         scribbles: list[Union[NewScribble, NewLabel, Deletion]]
         ) -> list[Optional[int]]:
+    """Batch upload scribbles, labels, and deletions."""
     # Check that at least the user is the same
     for i in range(1, len(scribbles)):
         if (scribbles[i].user_id != scribbles[0].user_id or
@@ -250,6 +254,7 @@ async def put_scribbles(
 
 @app.put('/new')
 async def put_one_scribble(scribble: Union[NewScribble, NewLabel]) -> int:
+    """Upload one scribble or label."""
     async with get_cursor(True) as cur:
         if isinstance(scribble, NewScribble):
             return await insert_scribble(cur, scribble)
