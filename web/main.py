@@ -59,7 +59,6 @@ templates.env.filters['format_date'] = format_date
 
 @app.get('/', response_class=HTMLResponse, include_in_schema=False)
 async def list_edits(request: Request):
-    logging.warn('Headers: %s', request.headers)
     user_id = request.session.get('user_id')
     nofilter = bool(request.session.get('nofilter'))
     edits = await list_tasks(user_id=None if nofilter else user_id)
@@ -97,8 +96,6 @@ async def toggle_filter(request: Request):
 
 @app.get("/login", include_in_schema=False)
 async def login_via_osm(request: Request):
-    base_url = config.BASE_URL or request.scope.get('root_path') or request.base_url
-    logging.info('Base URL: %s, Redirect: %s', base_url, request.url_for('auth_via_osm'))
     redirect_uri = request.url_for('auth_via_osm')
     return await oauth.openstreetmap.authorize_redirect(request, redirect_uri)
 
