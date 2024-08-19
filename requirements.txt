@@ -4,3 +4,5 @@ psycopg[binary,pool]
 Pillow
 jinja2
 aiohttp
+authlib
+itsdangerous

@@ -274,3 +274,14 @@ async def list_tasks(bbox: Optional[list[float]] = None,
             ))
 
     return result
+
+
+async def mark_processed(task_id: int, user_id: Optional[int]) -> None:
+    async with get_cursor(True) as cur:
+        if user_id:
+            sql = """update tasks set processed = now(), processed_by_id = %(u)s
+            where task_id = %(t)s"""
+        else:
+            sql = """update tasks set processed = null, processed_by_id = null
+            where task_id = %(t)s"""
+        await cur.execute(sql, {'t': task_id, 'u': user_id})

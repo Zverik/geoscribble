@@ -28,3 +28,13 @@ FONT = os.getenv('FONT', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf')
 # Email for geocoder
 EMAIL = os.getenv('EMAIL', 'geoscribble@example.com')
 MAX_GEOCODE = int(os.getenv('MAX_GEOCODE', '20'))
+
+# For OpenStreetMap authentication
+SECRET_KEY = os.getenv('SECRET_KEY', 'whatever')
+OAUTH_ID = os.getenv('OAUTH_ID', '')
+OAUTH_SECRET = os.getenv('OAUTH_SECRET', '')
+
+try:
+    from .config_local import *
+except ImportError:
+    pass

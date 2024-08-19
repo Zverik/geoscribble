@@ -18,7 +18,7 @@ with start_date_table as (
 
 ), existing as (
   -- Find new tasks to merge with existing tasks.
-  select n.*, t.task_id from new_tasks n left join tasks t on n.user_id = t.user_id and date_trunc('day', n.created) = date_trunc('day', t.created) and ST_DWithin(n.loc, t.location, 0.01)
+  select n.*, t.task_id from new_tasks n left join tasks t on n.user_id = t.user_id and date_trunc('day', n.created) = date_trunc('day', t.created) and ST_DWithin(n.loc, t.location, 0.02)
 
 ), inserting as (
   -- Insert new tasks.

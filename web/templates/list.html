@@ -7,6 +7,20 @@
   </head>
   <body>
     <h1>GeoScribble edits</h1>
+
+    {% if not username %}
+    <form action="{{ url_for('login_via_osm') }}">
+      <input type="submit" value="Login with OpenStreetMap">
+    </form>
+    {% else %}
+    <form action="{{ url_for('logout') }}">
+      You are {{ username }}.
+      {% if nofilter %}<a href="{{ url_for('toggle_filter') }}">Show mine</a>.
+      {% else %}<a href="{{ url_for('toggle_filter') }}">Show all</a>.{% endif %}
+      <input type="submit" value="Logout">
+    </form>
+    {% endif %}
+
     <table>
       {% for edit in edits %}
       <tr>
@@ -16,9 +30,21 @@
         <td>({{ edit.scribbles }})</td>
         <td>
           <a href="/map#17/{{ edit.location[1] }}/{{ edit.location[0] }}">map</a>
-          <a href="http://127.0.0.1:8111/load_and_zoom?left={{ edit.location[0] - 0.01 }}&right={{ edit.location[0] + 0.01 }}&bottom={{ edit.location[1] - 0.01 }}&top={{ edit.location[1] + 0.01 }}">josm</a>
+          <a href="http://127.0.0.1:8111/load_and_zoom?left={{ edit.location[0] - 0.004 }}&right={{ edit.location[0] + 0.004 }}&bottom={{ edit.location[1] - 0.003 }}&top={{ edit.location[1] + 0.003 }}">josm</a>
           <a href="https://rapideditor.org/edit#map=18/{{ edit.location[1] }}/{{ edit.location[0] }}">rapid</a>
         </td>
+        {% if username %}
+        <td>
+          {% if not edit.processed %}
+          <form action="{{ url_for('process_task') }}">
+            <input type="hidden" name="task_id" value="{{ edit.id }}">
+            <input type="submit" value="Mark done">
+          </form>
+          {% else %}
+          <a href="{{ url_for('unprocess_task').include_query_params(task_id=edit.id) }}">Not done yet</a>
+          {% endif %}
+        </td>
+        {% endif %}
         <td>{{ edit.location_str or '' }}</td>
       </tr>
       {% endfor %}
