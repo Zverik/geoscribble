@@ -29,7 +29,7 @@
         <td>{{ edit.created | format_date }}</td>
         <td>({{ edit.scribbles }})</td>
         <td>
-          <a href="/map#17/{{ edit.location[1] }}/{{ edit.location[0] }}">map</a>
+          <a href="{{ url_for('root') }}#17/{{ edit.location[1] }}/{{ edit.location[0] }}">map</a>
           <a href="http://127.0.0.1:8111/load_and_zoom?left={{ edit.location[0] - 0.004 }}&right={{ edit.location[0] + 0.004 }}&bottom={{ edit.location[1] - 0.003 }}&top={{ edit.location[1] + 0.003 }}">josm</a>
           <a href="https://rapideditor.org/edit#map=18/{{ edit.location[1] }}/{{ edit.location[0] }}">rapid</a>
         </td>

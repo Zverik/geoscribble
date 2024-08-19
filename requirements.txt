@@ -1,5 +1,6 @@
 fastapi
 uvicorn[standard]
+gunicorn
 psycopg[binary,pool]
 Pillow
 jinja2
