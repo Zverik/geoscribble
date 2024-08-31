@@ -209,7 +209,7 @@ async def wms(request: Request):
     """WMS endpoint for editors."""
     params = {k.lower(): v for k, v in request.query_params.items()}
     if params.get('request') == 'GetCapabilities':
-        if params.get('service', 'WMS') != 'WMS':
+        if params.get('service', 'WMS').lower() != 'wms':
             raise HTTPException(422, "Please use WMS for service")
         base_url = config.BASE_URL or request.scope.get('root_path') or request.base_url
         xml = get_capabilities(base_url)  # TODO: url behind proxy
