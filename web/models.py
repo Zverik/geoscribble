@@ -104,4 +104,5 @@ class Feature(BaseModel):
 
 
 class FeatureCollection(BaseModel):
+    f_type: Annotated[str, Field("FeatureCollection", serialization_alias='type')]
     features: list[Feature]
